@@ -20,7 +20,7 @@ print(probabilidadNaipes1('diamante'))
 #2. Crear una función que cálcule la probabilidad de que salga un 7 o un 8 y además el usuario pueda establecer el color.
 
 def probabilidadNaipes2(numero,categoria):
-    cartas = 52
+    cartas = 5
     cartasColor=26
     if(numero=='' and (categoria=='negra' or categoria=='roja')):
         return cartasColor/cartas

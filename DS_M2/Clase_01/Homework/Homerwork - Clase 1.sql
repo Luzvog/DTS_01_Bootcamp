@@ -1,14 +1,12 @@
-USE master
+CREATE DATABASE henry;
 
-CREATE DATABASE henry
-
-USE henry
+USE henry;
 
 CREATE TABLE carreras (
 	idCarrera INT NOT NULL AUTO_INCREMENT,
 	nombre VARCHAR (20) NOT NULL,
 	PRIMARY KEY (idCarrera)
-)
+);
 
 CREATE TABLE instructores (
 	idInstructor INT NOT NULL AUTO_INCREMENT ,
@@ -18,7 +16,7 @@ CREATE TABLE instructores (
 	fechaNacimiento DATE NOT NULL,
 	fechaIncorporacion DATE,
 	PRIMARY KEY (idInstructor)
-)
+);
 
 CREATE TABLE cohortes (
 	idCohorte INT NOT NULL AUTO_INCREMENT,
@@ -30,7 +28,7 @@ CREATE TABLE cohortes (
 	PRIMARY KEY (idCohorte),
 	FOREIGN KEY (carrera) REFERENCES carreras(idCarrera),
 	FOREIGN KEY (instructor) REFERENCES instructores(idInstructor)  
-)
+);
 
 CREATE TABLE alumnos (
 	idAlumno INT NOT NULL AUTO_INCREMENT ,
@@ -42,4 +40,4 @@ CREATE TABLE alumnos (
 	cohorte INT,
 	PRIMARY KEY (idAlumno),
 	FOREIGN KEY (cohorte) REFERENCES cohortes(idCohorte) 
-)
+);
