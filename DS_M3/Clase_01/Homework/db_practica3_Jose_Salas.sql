@@ -1,22 +1,26 @@
-create database db_practica3;
+/*
+crear base de datos
+*/
 
-use  db_practica3;
+CREATE DATABASE db_practica3;
+
+USE  db_practica3;
 
 /*
 crear tabla canalVenta
 */
 
-create table canalVenta (
-	idCanal char(15) not null,
-	descripcion char(50) not null
+CREATE TABLE canalVenta (
+	idCanal CHAR(15) NOT NULL,
+	descripcion CHAR(50) NOT NULL
 );
 
-load data infile '\CanalDeVenta_(por_comas).csv'
-	into table canalVenta
-	character set latin1
-	fields terminated by ';'
-	lines terminated by ';;'
-	ignore 1 lines;
+LOAD DATA INFILE '\CanalDeVenta_(por_comas).csv'
+	INTO TABLE canalVenta
+	CHARACTER SET latin1
+	fields terminated BY ';'
+	lines terminated BY ';;'
+	IGNORE 1 lines;
 
 SELECT * FROM canalVenta;
 
@@ -24,25 +28,25 @@ SELECT * FROM canalVenta;
 crear tabla cliente
 */
 
-create table cliente (
-	idCliente INT not null,
-	provincia char(180) not null,
-	nombreApellido char(180) not null,
-	domicilio char(180) not null,
-	telefono char(180) not null,
-	edad char(180) not null,
-	localidad char(180) not null,
-	coordenada_X char(180) not null,
-	coordenada_Y char(180) not null,
-    col10 char(180) null
+CREATE TABLE cliente (
+	idCliente INT NOT NULL,
+	provincia CHAR(180) NOT NULL,
+	nombreApellido CHAR(180) NOT NULL,
+	domicilio CHAR(180) NOT NULL,
+	telefono CHAR(180) NOT NULL,
+	edad CHAR(180) NOT NULL,
+	localidad CHAR(180) NOT NULL,
+	coordenada_X CHAR(180) NOT NULL,
+	coordenada_Y CHAR(180) NOT NULL,
+    col10 CHAR(180) NULL
 );
 
-load data infile '\Clientes.csv'
-	into table cliente
-	character set latin1
-	fields terminated by ';'
-	lines terminated by '\n'
-	ignore 1 lines;
+LOAD DATA infile '\Clientes.csv'
+	INTO TABLE cliente
+	CHARACTER SET latin1
+	fields terminated BY ';'
+	lines terminated BY '\n'
+	IGNORE 1 lines;
 
 SELECT * FROM cliente;
 
@@ -50,21 +54,21 @@ SELECT * FROM cliente;
 crear tabla compra
 */
 
-create table compra (
-	idCompra INT not null,
-	fecha char(50) not null,
-	idProducto char(50) not null,
-	cantidad char(50) not null,
-    precio char(50) not null,
-	idProveedor char(50) not null
+CREATE TABLE compra (
+	idCompra INT NOT NULL,
+	fecha CHAR(50) NOT NULL,
+	idProducto CHAR(50) NOT NULL,
+	cantidad CHAR(50) NOT NULL,
+    precio CHAR(50) NOT NULL,
+	idProveedor CHAR(50) NOT NULL
 );
 
-load data infile '\Compra.csv'
-	into table compra
-	character set latin1
-	fields terminated by ','
-	lines terminated by '\n'
-	ignore 1 lines;
+LOAD DATA infile '\Compra.csv'
+	INTO TABLE compra
+	CHARACTER SET latin1
+	fields terminated BY ','
+	lines terminated BY '\n'
+	IGNORE 1 lines;
 
 SELECT * FROM compra;
 
@@ -72,22 +76,22 @@ SELECT * FROM compra;
 crear tabla empleado
 */
 
-create table empleado (
-	idEmpleado char(15) not null,
-	apelldio char(50) not null,
-    nombre char(50) not null,
-	sucursal char(50) not null,
-	sector char(50) not null,
-	cargo char(50) not null,
-	salario char(50) not null
+CREATE TABLE empleado (
+	idEmpleado CHAR(15) NOT NULL,
+	apelldio CHAR(50) NOT NULL,
+    nombre CHAR(50) NOT NULL,
+	sucursal CHAR(50) NOT NULL,
+	sector CHAR(50) NOT NULL,
+	cargo CHAR(50) NOT NULL,
+	salario CHAR(50) NOT NULL
 );
 
-load data infile '\Empleados_(por_comas).csv'
-	into table empleado
-	character set latin1
-	fields terminated by ';'
-	lines terminated by '\n'
-	ignore 1 lines;
+LOAD DATA infile '\Empleados_(por_comas).csv'
+	INTO TABLE empleado
+	CHARACTER SET latin1
+	fields terminated BY ';'
+	lines terminated BY '\n'
+	IGNORE 1 lines;
 
 SELECT * FROM empleado;
 
@@ -95,20 +99,20 @@ SELECT * FROM empleado;
 crear tabla gasto
 */
 
-create table gasto (
-	idGasto INT not null,
-	idSucursal char(50) not null,
-	idTipoGasto char(50) not null,
-	fecha char(50) not null,
-	monto char(50) not null
+CREATE TABLE gasto (
+	idGasto INT NOT NULL,
+	idSucursal CHAR(50) NOT NULL,
+	idTipoGasto CHAR(50) NOT NULL,
+	fecha CHAR(50) NOT NULL,
+	monto CHAR(50) NOT NULL
 );
 
-load data infile '\Gasto.csv'
-	into table gasto
-	character set latin1
-	fields terminated by ','
-	lines terminated by '\n'
-	ignore 1 lines;
+LOAD DATA infile '\Gasto.csv'
+	INTO TABLE gasto
+	CHARACTER SET latin1
+	fields terminated BY ','
+	lines terminated BY '\n'
+	IGNORE 1 lines;
 
 SELECT * FROM gasto;
 
@@ -116,19 +120,19 @@ SELECT * FROM gasto;
 crear tabla producto
 */
 
-create table producto (
-	idProducto char(50) not null,
-	concepto char(150) not null,
-	tipo char(50) not null,
-	precio char(50) not null
+CREATE TABLE producto (
+	idProducto CHAR(50) NOT NULL,
+	concepto CHAR(150) NOT NULL,
+	tipo CHAR(50) NOT NULL,
+	precio CHAR(50) NOT NULL
 );
 
-load data infile '\PRODUCTOS_(por_comas).csv'
-	into table producto
-	character set latin1
-	fields terminated by ';'
-	lines terminated by '\n'
-	ignore 1 lines;
+LOAD DATA infile '\PRODUCTOS_(por_comas).csv'
+	INTO TABLE producto
+	CHARACTER SET latin1
+	fields terminated BY ';'
+	lines terminated BY '\r\n'
+	IGNORE 1 lines;
     
 SELECT * FROM producto;
 
@@ -136,63 +140,89 @@ SELECT * FROM producto;
 crear tabla proveedores
 */
 
-create table proveedores (
-	idProveedor char(50) not null,
-	nombre char(50) not null,
-	direccion char(50) not null,
-	ciudad char(50) not null,
-	estado char(50) not null,
-	pais char(50) not null,
-	provincia char(50) not null
+CREATE TABLE proveedores (
+	idProveedor CHAR(50) NOT NULL,
+	nombre CHAR(50) NOT NULL,
+	direccion CHAR(50) NOT NULL,
+	ciudad CHAR(50) NOT NULL,
+	estado CHAR(50) NOT NULL,
+	pais CHAR(50) NOT NULL,
+	provincia CHAR(50) NOT NULL
 );
 
-load data infile '\Proveedores_(por_comas).csv'
-	into table proveedores
-	character set latin1
-	fields terminated by ';'
-	lines terminated by '\N'
-	ignore 1 lines;
+LOAD DATA infile '\Proveedores_(por_comas).csv'
+	INTO TABLE proveedores
+	CHARACTER SET latin1
+	fields terminated BY ';'
+	lines terminated BY '\r\n'
+	IGNORE 1 lines;
     
 SELECT * FROM proveedores;
-
-DROP TABLE proveedores;
 
 /*
 crear tabla sucursales
 */
 
-create table sucursal (
-	idSucursal char(15) not null,
-	direccion char(50) not null
-	localdiad char(50) not null
-	provincia char(50) not null
-	latitud char(50) not null
-	longitud char(50) not null
+CREATE TABLE sucursal (
+	idSucursal int NOT NULL,
+    sucursal CHAR(50) NOT NULL,
+	direccion CHAR(50) NOT NULL,
+	localdiad CHAR(50) NOT NULL,
+	provincia CHAR(50) NOT NULL,
+	latitud CHAR(50) NOT NULL,
+	longitud CHAR(50) NOT NULL
 );
+
+LOAD DATA infile '\Sucursales.csv'
+	INTO TABLE sucursal
+	CHARACTER SET latin1
+	fields terminated BY ';'
+	lines terminated BY '\r\n'
+	IGNORE 1 lines;
+    
+SELECT * FROM sucursal;
 
 /*
 crear tabla tipoGasto
 */
 
-create table tipoGasto (
-	idTipoGasto char(15) not null,
-	descripcion char(50) not null
-	montoAproximado char(50) not null
+CREATE TABLE tipoGasto (
+	idTipoGasto CHAR(15) NOT NULL,
+	descripcion CHAR(50) NOT NULL,
+	montoAproximado CHAR(50) NOT NULL
 );
+
+LOAD DATA infile '\TiposDeGasto.csv'
+	INTO TABLE tipoGasto
+	CHARACTER SET latin1
+	fields terminated BY ','
+	lines terminated BY '\r\n'
+	IGNORE 1 lines;
+
+SELECT * FROM tipoGasto;
 
 /*
 crear tabla venta
 */
 
-create table venta (
-	idVenta char(15) not null,
-	fecha char(50) not null
-	fechaEntrega  char(50) not null
-	idCanal char(50) not null
-	idCliente char(50) not null
-	idSucursal char(50) not null
-	idEmpleado char(50) not null
-	idProducto char(50) not null
-	precio char(50) not null
-	cantidad char(50) not null
+CREATE TABLE venta (
+	idVenta CHAR(15) NOT NULL,
+	fecha CHAR(50) NOT NULL,
+	fechaEntrega  CHAR(50) NOT NULL,
+	idCanal CHAR(50) NOT NULL,
+	idCliente CHAR(50) NOT NULL,
+	idSucursal CHAR(50) NOT NULL,
+	idEmpleado CHAR(50) NOT NULL,
+	idProducto CHAR(50) NOT NULL,
+	precio CHAR(50) NOT NULL
 );
+
+LOAD DATA infile '\Venta.csv'
+	INTO TABLE venta
+	CHARACTER SET latin1
+	fields terminated BY ','
+	lines terminated BY '\r\n'
+	IGNORE 1 lines
+	(idVenta,fecha,fechaEntrega,idCanal,idCliente,idSucursal,idEmpleado,idProducto,precio,@cantidad);
+    
+SELECT * FROM venta;
