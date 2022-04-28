@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS `compra` (
   `cantidad`			INTEGER,
   `precio`				DECIMAL(10,2),
   `id_proveedor`			INTEGER
+  -- eliminar: `precio`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 LOAD DATA INFILE '\Compra.csv' 
 INTO TABLE `compra` 
@@ -100,6 +101,7 @@ CREATE TABLE IF NOT EXISTS `venta` (
   `cantidad`			VARCHAR(30)
   -- `precio`			DECIMAL(10,2),
   -- `cantidad`			INTEGER
+  -- eliminar: `precio`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 LOAD DATA INFILE '\Venta.csv' 
 INTO TABLE `venta` 
@@ -121,7 +123,7 @@ CREATE TABLE IF NOT EXISTS `tipo_gasto` (
   `id_tipo_gasto` INT(11) NOT NULL AUTO_INCREMENT,
   `descripcion` VARCHAR(100) NOT NULL,
   `monto_aproximado` DECIMAL(10,2) NOT NULL,
-  -- id_tipo_gasto   INTEGER,
+  -- `id_tipo_gasto`   INTEGER,
   PRIMARY KEY (`id_tipo_gasto`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 LOAD DATA INFILE '\TiposDeGasto.csv' 
@@ -141,13 +143,14 @@ CREATE TABLE IF NOT EXISTS cliente (
 	`x`				VARCHAR(30),
 	`y`				VARCHAR(30),
 	`col10`				VARCHAR(1)
+  -- eliminar: `x`
+  -- eliminar: `y`
+  -- eliminar: `col10`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 LOAD DATA INFILE '\Clientes.csv'
 INTO TABLE cliente
 FIELDS TERMINATED BY ';' ENCLOSED BY '\"' ESCAPED BY '\"' 
 LINES TERMINATED BY '\n' IGNORE 1 LINES;
-
-SELECT * FROM cliente;
 
 DROP TABLE IF EXISTS proveedor;
 CREATE TABLE IF NOT EXISTS proveedor (
@@ -170,7 +173,7 @@ CREATE TABLE IF NOT EXISTS producto (
 	`concepto`					VARCHAR(100),
 	`tipo`						VARCHAR(50),
 	`precio`						VARCHAR(30)
-    -- precio 
+    -- `precio`       DECIMAL(10,2)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 LOAD DATA INFILE '\Productos.csv' 
 INTO TABLE `producto` 
@@ -186,6 +189,7 @@ CREATE TABLE IF NOT EXISTS empleado (
 	`sector`						VARCHAR(50),
 	`cargo`						VARCHAR(50),
 	`salario`					VARCHAR(30)
+  -- `salario`      DECIMAL(10,2)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 LOAD DATA INFILE '\Empleados.csv' 
 INTO TABLE `empleado` 
@@ -201,6 +205,8 @@ CREATE TABLE IF NOT EXISTS sucursal (
 	`provincia`	VARCHAR(50),
 	`latitud`	VARCHAR(30),
 	`longitud`	VARCHAR(30)
+  -- elminar: `latitud`
+  -- eliminar: `longitud`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 LOAD DATA INFILE '\Sucursales.csv' 
 INTO TABLE sucursal
