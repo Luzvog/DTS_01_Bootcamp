@@ -148,7 +148,7 @@ Para corregirlo, debemos llegar a un esquema de 3 tablas como el que se puede ob
 
 ![FN21](../_src/assets/FN21.PNG)
 
-#### Tercera Forma Normal (3FN)4
+#### Tercera Forma Normal (3FN)
 
 Una relación se encuentra en 3FN sólo si se cumple 2FN y los campos no clave dependen únicamente de la clave o los campos no clave no dependen unos de otros.<br>
 Supongamos que tenemos una tabla donde guardamos datos filiatorios de clientes que tienen que ver con la Localidad y Provincia en que viven y tenemos la estructura de la imagen.<br>
@@ -209,7 +209,7 @@ Por su forma de trabajar filtrando la información en base a selecciones, en las
 #### Modelos de Copo de Nieve
 
 El esquema de copo de nieve consta de una tabla de hechos que está conectada a muchas tablas de dimensiones, que pueden estar conectadas a otras tablas de dimensiones a través de una relación de muchos a uno.<br>
-Las tablas de un esquema de copo de nieve generalmente se normalizan en el tercer formulario de normalización. Cada tabla de dimensiones representa exactamente un nivel en una jerarquía.<br>
+Las tablas de un esquema de copo de nieve generalmente se normalizan en la tercera forma normal. Cada tabla de dimensiones representa exactamente un nivel en una jerarquía.<br>
 
 En la siguiente figura se muestra un esquema de copo de nieve con dos dimensiones, cada una con tres niveles. Un esquema de copo de nieve puede tener varias dimensiones y cada dimensión puede tener varios niveles.<br>
 
@@ -261,18 +261,16 @@ Si todo lo anterior se aborda de manera adecuada, será más sencillo para quien
 - cliente.
 - compra.
 4. Ahora que las tablas están indexadas, vuelva a ejecutar las consultas del punto 1 y evalue las estadístias. ¿Nota alguna diferencia?.
-5. Genere una nueva tabla que lleve el nombre fact_inicial que pueda agrupar los hechos relevantes de las tablas ventas, los campos a considerar deben ser los siguientes:
-- IdFecha 			INTEGER,
-- Fecha				DATE,
-- IdSucursal 		INTEGER,
-- IdProducto 		INTEGER,
-- IdProductoFecha	BIGINT,
-- IdSucursalFecha 	BIGINT,
-- IdProductoSucursalFecha 	BIGINT
-<<<<<<< HEAD
-6. A partir de la tabla creada en el punto anterior, deberá poblarla con los datos del conjunto.
-=======
-6. A partir de la tabla creada en el punto anterior, deberá poblarla con los datos de la tabla ventas. Recuerda que algunos campos de la tabla de hechos podrían quedar vacíos.
+5. Genere una nueva tabla que lleve el nombre fact_venta que pueda agrupar los hechos relevantes de la tabla venta, los campos a considerar deben ser los siguientes:
+- IdFecha ,
+- Fecha,
+- IdSucursal,
+- IdProducto,
+- IdCliente,
+- Precio
+- Cantidad
+
+6. A partir de la tabla creada en el punto anterior, deberá poblarla con los datos de la tabla ventas.
 
 <table class="hide" width="100%" style='table-layout:fixed;'>
   <tr>
@@ -285,4 +283,3 @@ Si todo lo anterior se aborda de manera adecuada, será más sencillo para quien
     </td>
   </tr>
 </table>
->>>>>>> bf217c386f98db28cfc4404687b1846ca1cd4bc2

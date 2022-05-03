@@ -300,3 +300,283 @@ SELECT * FROM `producto`;
 
 SELECT * FROM `proveedores`;
 
+/*
+13. Es necesario contar con una tabla de localidades 
+del país con el fin de evaluar la apertura de una nueva sucursal 
+y mejorar nuestros datos. A partir de los datos en las tablas cliente, 
+sucursal y proveedor hay que generar una tabla definitiva de Localidades 
+y Provincias. Utilizando la nueva tabla de Localidades controlar y corregir (Normalizar) 
+los campos Localidad y Provincia de las tablas cliente, sucursal y proveedor.
+
+
+*/
+
+
+-- Crar una tabla auxiliar en la cual se puedan modificar los datos de formar independitne:(provincia_original, localidad_origina, provincia_modificado, localidad_modificado,id_localidad)
+/*
+SELECT DISTINCT `localidad`, `provincia`, `localidad`, `provincia`, 0 FROM `cliente`
+UNION
+SELECT DISTINCT `localidad`, `provincia`, `localidad`, `provincia`, 0 FROM `sucursal`
+UNION
+SELECT DISTINCT `ciudad`, `provincia`, `ciudad`, `provincia`, 0 FROM `proveedor`
+ORDER BY 2, 1;
+
+CREATE TABLE IF NOT EXISTS `aux_localidad` (
+	`localidad_original`	VARCHAR(80),
+	`provincia_original`	VARCHAR(50),
+	`localidad_normalizada`	VARCHAR(80),
+	`provincia_normalizada`	VARCHAR(50),
+	`id_localidad`			INTEGER
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+*/
+
+-- Rellenar la tabla auxiliar
+
+/*
+INSERT INTO `aux_localidad` (`localidad_original`, `provincia_original`, `localidad_normalizada`, `provincia_normalizada`, `id_localidad`)
+SELECT DISTINCT `localidad`, `provincia`, `localidad`, `provincia`, 0 FROM `cliente`
+UNION
+SELECT DISTINCT `localidad`, `provincia`, `localidad`, `provincia`, 0 FROM `sucursal`
+UNION
+SELECT DISTINCT `ciudad`, `provincia`, `ciudad`, `provincia`, 0 FROM `proveedor`
+ORDER BY 2, 1;
+*/
+
+-- Normalizar las tablas: surcursal(localidad, provincia), cliente(localidad, provincia), proveerdor(cidudad, provincia).
+-- Crear dos tablas: tabla provincia (id_provincia, provincia), tabla localidad (id_localidad, localidad, id_provincia).
+-- Llenar las tablas.
+-- Modificar las tablas surcursal(localidad, provincia), cliente(localidad, provincia), proveerdor(cidudad, provincia) para acceder a la entidad geografia de mayor jerarquia mediante de la localidad.
+
+
+
+SELECT * FROM `cliente`;
+SELECT DISTINCT(`localidad`) FROM `cliente`;
+SELECT * FROM `sucursal`;
+SELECT DISTINCT(`provincia`) FROM `sucursal`;
+SELECT * FROM `proveedor`;
+SELECT DISTINCT(`ciudad`) FROM `proveedor`;
+
+SELECT DISTINCT `localidad`, `provincia`, `localidad`, `provincia`, 0 FROM `cliente`
+UNION
+SELECT DISTINCT `localidad`, `provincia`, `localidad`, `provincia`, 0 FROM `sucursal`
+UNION
+SELECT DISTINCT `ciudad`, `provincia`, `ciudad`, `provincia`, 0 FROM `proveedor`
+ORDER BY 2, 1;
+
+DROP TABLE IF EXISTS `aux_localidad`;
+CREATE TABLE IF NOT EXISTS `aux_localidad` (
+	`localidad_original`	VARCHAR(80),
+	`provincia_original`	VARCHAR(50),
+	`localidad_normalizada`	VARCHAR(80),
+	`provincia_normalizada`	VARCHAR(50),
+	`id_localidad`			INTEGER
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+SELECT * FROM `aux_localidad`;
+
+INSERT INTO `aux_localidad` (`localidad_original`, `provincia_original`, `localidad_normalizada`, `provincia_normalizada`, `id_localidad`)
+SELECT DISTINCT `localidad`, `provincia`, `localidad`, `provincia`, 0 FROM `cliente`
+UNION
+SELECT DISTINCT `localidad`, `provincia`, `localidad`, `provincia`, 0 FROM `sucursal`
+UNION
+SELECT DISTINCT `ciudad`, `provincia`, `ciudad`, `provincia`, 0 FROM `proveedor`
+ORDER BY 2, 1;
+
+SELECT * FROM `aux_localidad`;
+
+UPDATE `aux_localidad` SET provincia_normalizada = 'Buenos Aires'
+WHERE provincia_original IN ('Caba',
+                             'C Debuenos Aires',
+                             'Bs As',
+                             'Bs.As.',
+                             'Buenos Aires',
+                             'B. Aires',
+                             'B.Aires',
+                             'Provincia De Buenos Aires',
+                             'Prov De Bs As',
+                             'Ciudad De Buenos Aires',
+                             'Pcia Bs As',
+                             'Pcia Bs As',
+                             'Prov De Bs As.');
+
+SELECT DISTINCT(`provincia_normalizada`) FROM `aux_localidad`;
+
+UPDATE `aux_localidad` SET `localidad_normalizada` = 'Capítal Federal'
+WHERE `localidad_original` IN ('Boca De Atencion Monte Castro',
+                            'Caba',
+                            'Cap.   Federal',
+                            'Cap. Fed.',
+                            'Capfed',
+                            'Capital',
+                            'Capital Federal',
+                            'Cdad De Buenos Aires',
+                            'Ciudad De Buenos Aires')
+AND `provincia_normalizada` = 'Buenos Aires';
+
+SELECT DISTINCT(`localidad_normalizada`) FROM `aux_localidad` ORDER BY `localidad_normalizada`;
+
+UPDATE `aux_localidad` SET localidad_normalizada = 'Córdoba'
+WHERE localidad_original IN ('Coroba',
+                            'Cordoba',
+							'Cã³rdoba')
+AND provincia_normalizada = 'Córdoba';
+
+DROP TABLE IF EXISTS `localidad`;
+CREATE TABLE IF NOT EXISTS `localidad` (
+  `id_localidad` int(11) NOT NULL AUTO_INCREMENT,
+  `localidad` varchar(80) NOT NULL,
+  `provincia` varchar(80) NOT NULL,
+  `id_provincia` int(11) NOT NULL,
+  PRIMARY KEY (`id_localidad`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+DROP TABLE IF EXISTS `provincia`;
+CREATE TABLE IF NOT EXISTS `provincia` (
+  `id_provincia` int(11) NOT NULL AUTO_INCREMENT,
+  `provincia` varchar(50) NOT NULL,
+  PRIMARY KEY (`id_provincia`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+SELECT	DISTINCT localidad_normalizada, provincia_normalizada, 0
+FROM aux_localidad
+ORDER BY provincia_normalizada, localidad_normalizada;
+
+SELECT DISTINCT provincia_normalizada
+FROM aux_localidad
+ORDER BY provincia_normalizada;
+
+INSERT INTO localidad (localidad, provincia, id_provincia)
+SELECT	DISTINCT localidad_normalizada, provincia_normalizada, 0
+FROM aux_localidad
+ORDER BY provincia_normalizada, localidad_normalizada;
+
+SELECT * FROM `localidad`;
+
+INSERT INTO provincia (provincia)
+SELECT DISTINCT Provincia_Normalizada
+FROM aux_localidad
+ORDER BY Provincia_Normalizada;
+
+SELECT * FROM `provincia`;
+
+UPDATE localidad l JOIN provincia p
+	ON (l.provincia = p.provincia)
+SET l.id_provincia = p.id_provincia;
+
+SELECT * FROM `aux_localidad`;
+
+UPDATE aux_localidad a JOIN localidad l 
+			ON (l.localidad = a.localidad_normalizada
+                AND a.provincia_normalizada = l.provincia)
+SET a.id_localidad = l.id_localidad;
+
+ALTER TABLE `cliente` ADD `id_localidad` INT NOT NULL DEFAULT '0' AFTER `localidad`;
+ALTER TABLE `proveedor` ADD `id_localidad` INT NOT NULL DEFAULT '0' AFTER `departamento`;
+
+UPDATE cliente c JOIN aux_localidad a
+	ON (c.provincia = a.provincia_original AND c.localidad = a.localidad_original)
+SET c.id_localidad = a.id_localidad;
+
+UPDATE sucursal s JOIN aux_localidad a
+	ON (s.provincia = a.provincia_original AND s.localidad = a.localidad_original)
+SET s.id_localidad = a.id_localidad;
+
+UPDATE proveedor p JOIN aux_localidad a
+	ON (p.provincia = a.provincia_original AND p.ciudad = a.localidad_original)
+SET p.id_localidad = a.id_localidad;
+
+SELECT * FROM `cliente`;
+
+SELECT * FROM `sucursal`;
+
+SELECT * FROM `proveedor`;
+
+ALTER TABLE `cliente`
+  DROP `Provincia`,
+  DROP `Localidad`;
+
+ALTER TABLE `proveedor`
+  DROP `Ciudad`,
+  DROP `Provincia`,
+  DROP `Pais`,
+  DROP `Departamento`;
+
+ALTER TABLE `sucursal`
+  DROP `Localidad`,
+  DROP `Provincia`;
+  
+ALTER TABLE `localidad`
+  DROP `Provincia`;
+
+SELECT * FROM `cliente`;
+SELECT * FROM `proveedor`;
+SELECT * FROM `sucursal`;
+SELECT * FROM `localidad`;
+SELECT * FROM `provincia`;
+
+
+
+# Item 14 <--------
+ALTER TABLE CLIENTE ADD RangoEdad VARCHAR(50) NOT NULL DEFAULT 'Sin dato' AFTER EDAD;
+ALTER TABLE CLIENTE DROP RangoEdad;
+
+
+UPDATE CLIENTE SET RangoEdad = 'De 10 a 20' WHERE EDAD >= 10 AND EDAD <= 20;
+UPDATE CLIENTE SET RangoEdad = 'De 20 a 30' WHERE EDAD >= 20 AND EDAD <= 30;
+UPDATE CLIENTE SET RangoEdad = 'De 30 a 40' WHERE EDAD >= 30 AND EDAD <= 40;
+UPDATE CLIENTE SET RangoEdad = 'De 40 a 50' WHERE EDAD >= 40 AND EDAD <= 50;
+UPDATE CLIENTE SET RangoEdad = 'De 50 A 60' WHERE EDAD >= 50 AND EDAD <= 60;
+UPDATE CLIENTE SET RangoEdad = 'De 60 a 70' WHERE EDAD >= 60 AND EDAD <= 70;
+
+ALTER TABLE CLIENTE DROP EDAD;
+
+
+
+# Item 11
+
+DROP TABLE IF EXISTS `sector`;
+CREATE TABLE IF NOT EXISTS `sector` (
+  	`id_sector` 		INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  	`sector`        VARCHAR(30)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;	
+
+DROP TABLE IF EXISTS `cargo`;
+CREATE TABLE IF NOT EXISTS `cargo` (
+  	`id_cargo` 		INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  	`cargo`        VARCHAR(30)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+INSERT INTO `sector` (`sector`) 
+  SELECT DISTINCT `sector` 
+  FROM `empleado` ORDER BY 1;
+
+SELECT * FROM `sector`;
+
+INSERT INTO `cargo` (`cargo`) 
+  SELECT DISTINCT `cargo` 
+  FROM `empleado` ORDER BY 1;
+
+SELECT * FROM `cargo`;
+
+SELECT * FROM `empleado`;
+
+ALTER TABLE `empleado`  ADD `id_sector` INTEGER NOT NULL DEFAULT '0' AFTER `id_sucursal`, 
+                        ADD `id_cargo` INTEGER NOT NULL DEFAULT '0' AFTER `id_sector`;
+
+SELECT * FROM `empleado`;
+
+UPDATE `empleado` e JOIN `cargo` c ON (c.`cargo` = e.`cargo`) 
+  SET e.`id_cargo` = c.`id_cargo`;
+
+SELECT * FROM `empleado`;
+
+UPDATE `empleado` e JOIN `sector` s ON (s.`sector` = e.`sector`) 
+SET e.`id_sector` = s.`id_sector`;
+
+SELECT * FROM `empleado`;
+
+ALTER TABLE `empleado` DROP `cargo`;
+ALTER TABLE `empleado` DROP `sector`;
+
+SELECT * FROM `empleado`;
