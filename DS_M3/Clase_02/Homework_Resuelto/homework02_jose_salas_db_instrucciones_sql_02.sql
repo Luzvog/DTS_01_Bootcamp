@@ -518,18 +518,18 @@ SELECT * FROM `provincia`;
 
 
 # Item 14 <--------
-ALTER TABLE CLIENTE ADD RangoEdad VARCHAR(50) NOT NULL DEFAULT 'Sin dato' AFTER EDAD;
-ALTER TABLE CLIENTE DROP RangoEdad;
+SELECT * FROM `cliente`;
 
+ALTER TABLE cliente ADD rango_edad VARCHAR(50) NOT NULL DEFAULT 'Sin dato' AFTER edad;
+UPDATE cliente SET rango_edad = 'De 10 a 20' WHERE edad >= 10 AND edad <= 20;
+UPDATE cliente SET rango_edad = 'De 20 a 30' WHERE edad >= 20 AND edad <= 30;
+UPDATE cliente SET rango_edad = 'De 30 a 40' WHERE edad >= 30 AND edad <= 40;
+UPDATE cliente SET rango_edad = 'De 40 a 50' WHERE edad >= 40 AND edad <= 50;
+UPDATE cliente SET rango_edad = 'De 50 A 60' WHERE edad >= 50 AND edad <= 60;
+UPDATE cliente SET rango_edad = 'De 60 a 70' WHERE edad >= 60 AND edad <= 70;
 
-UPDATE CLIENTE SET RangoEdad = 'De 10 a 20' WHERE EDAD >= 10 AND EDAD <= 20;
-UPDATE CLIENTE SET RangoEdad = 'De 20 a 30' WHERE EDAD >= 20 AND EDAD <= 30;
-UPDATE CLIENTE SET RangoEdad = 'De 30 a 40' WHERE EDAD >= 30 AND EDAD <= 40;
-UPDATE CLIENTE SET RangoEdad = 'De 40 a 50' WHERE EDAD >= 40 AND EDAD <= 50;
-UPDATE CLIENTE SET RangoEdad = 'De 50 A 60' WHERE EDAD >= 50 AND EDAD <= 60;
-UPDATE CLIENTE SET RangoEdad = 'De 60 a 70' WHERE EDAD >= 60 AND EDAD <= 70;
-
-ALTER TABLE CLIENTE DROP EDAD;
+ALTER TABLE cliente DROP edad;
+SELECT * FROM `cliente`;
 
 
 

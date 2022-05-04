@@ -193,10 +193,10 @@ SELECT IdCliente, Nombre_y_Apellido, Domicilio, Telefono, Rango_Etario, IdLocali
 FROM cliente
 WHERE IdCliente IN (SELECT distinct IdCliente FROM fact_venta);
 
-DROP TABLE IF EXISTS dim_producto;
-CREATE TABLE IF NOT EXISTS dim_producto (
-	IdProducto					INTEGER,
-	Producto					VARCHAR(100),
+DROP TABLE IF EXISTS `dim_producto`;
+CREATE TABLE IF NOT EXISTS `dim_producto` (
+	`id_producto`				INTEGER,
+	`producto`					VARCHAR(100),
 	IdTipoProducto				VARCHAR(50)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 

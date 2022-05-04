@@ -6,13 +6,13 @@ Anote los resultados del la ficha de estadísticas.
 */
 
 -- Consulta 1
-SELECT AVG(cantidad) AS cantidad_media FROM `venta` GROUP BY ``;		     
+SELECT AVG(cantidad) AS cantidad_media FROM `venta` GROUP BY `id_producto`;		     
 
 -- Consulta 2
 SELECT *, AVG(`monto`) AS `gato_promedio` FROM `gasto` GROUP BY `id_tipo_gasto`;
 
 -- Consulta 3
-SELECT *, AVG(`precio`) AS `promedio_precio` FROM `compra` GROUP BY ``; 
+SELECT *, AVG(`precio`) AS `promedio_precio` FROM `compra` GROUP BY `id_producto`; 
 
 -- Consulta 4
 SELECT *, AVG(`salario`) AS `promedio_salario` FROM `empleado` GROUP BY `id_empleado`;
@@ -24,7 +24,7 @@ SELECT  v1.`id_venta`,
         v1.`id_canal`,
         v1.`id_sucursal`,
         v1.`id_empleado`,
-        v1.``, 
+        v1.`id_producto`, 
         v1.`cantidad`, 
         vv.`precio`, 
         vv.`venta`, 
@@ -35,22 +35,22 @@ SELECT  v1.`id_venta`,
                     p.`precio`, 
                     ((v2.`cantidad`)*(p.`precio`)) AS `venta`
         FROM `venta` v2 JOIN `producto` p
-        ON v2.`` = p.``
+        ON v2.`id_producto` = p.`id_producto`
         HAVING `venta` IS NOT NULL
-        ORDER BY v2.``) AS vv
+        ORDER BY v2.`id_producto`) AS vv
     ON v1.`id_venta` = vv.`id_venta`
-    JOIN (SELECT    med_ls.``, 
+    JOIN (SELECT    med_ls.`id_producto`, 
                     AVG(med_ls.`venta`) AS `promedio`, 
                     (AVG(med_ls.`venta`) + (3 * STDDEV(med_ls.`venta`))) AS `maximo`
-        FROM (SELECT    v2.``, 
+        FROM (SELECT    v2.`id_producto`, 
                         v2.`id_venta`, p.`precio`, 
                         ((v2.`cantidad`)*(p.`precio`)) AS `venta`
             FROM `venta` v2 JOIN `producto` p
-            ON v2.`` = p.``
+            ON v2.`id_producto` = p.`id_producto`
             HAVING `venta` IS NOT NULL
-            ORDER BY v2.``) AS med_ls
-        GROUP BY med_ls.``) AS ls
-    ON v1.`` = ls.``
+            ORDER BY v2.`id_producto`) AS med_ls
+        GROUP BY med_ls.`id_producto`) AS ls
+    ON v1.`id_producto` = ls.`id_producto`
     WHERE vv.`venta` >  ls.`maximo`;
 
 
@@ -245,6 +245,19 @@ SHOW FULL COLUMNS FROM `venta`;
 
 
 ALTER TABLE `venta` ADD CONSTRAINT `venta_fk_producto` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+/*
+Tras resolver el error de la línea 297 ahora surge el error "1452. Cannot add or update a child row: a foreign key constraint fails"
+esto se debe a que elímine unos id_producto de la tabla producto y la tabla venta aún conserva dichos id, por lo tanto debo eliminarlos, 
+para ello he de apoyarme en la tabla aux_producto.
+
+SELECT * FROM `aux_producto` WHERE `id_tipo_producto` = 0;
+
+SELECT `id_producto` FROM `aux_producto` WHERE `id_tipo_producto` = 0;
+
+DELETE FROM `venta` WHERE `id_producto` IN (SELECT `id_producto` FROM `aux_producto` WHERE `id_tipo_producto` = 0);
+# Se borraron 642 filas en las cuales el id_producto estaba asociado a un id_tipo_producto = 0, dichas columnas no se almacenaron el a tabla aux_venta.
+# Restaurar la relacion `venta_fk_producto`.
+*/
 
 ALTER TABLE `venta` ADD CONSTRAINT `venta_fk_empleado` FOREIGN KEY (`id_empleado`) REFERENCES `empleado` (`id_empleado`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 /* Solucion error #1452 - Cannot add or update a child row: a foreign key constraint fails
@@ -280,12 +293,6 @@ AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'venta';
 
 -- Tabla producto
 
-SHOW FULL COLUMNS FROM `producto`;
-
-SHOW FULL COLUMNS FROM `tipo_producto`;
-
-SELECT * FROM `producto`;
-
 ALTER TABLE `producto` ADD CONSTRAINT `producto_fk_tipo_producto` FOREIGN KEY (`id_tipo_producto`) REFERENCES `tipo_producto` (`id_tipo_producto`) ON DELETE RESTRICT ON UPDATE RESTRICT; 
 /* Solucion error #1452 - Cannot add or update a child row: a foreign key constraint fails
 
@@ -293,11 +300,56 @@ ALTER TABLE `producto` ADD CONSTRAINT `producto_fk_tipo_producto` FOREIGN KEY (`
 -- Solución:
 # Dropear los campos con id_tipo_producto iguales a 0 en la tabla producto.
 
+-- Crear tabla `aux_producto`
+DROP TABLE IF EXISTS `aux_producto`;
+CREATE TABLE IF NOT EXISTS `aux_producto` (
+	`id_producto`					INTEGER,
+	`concepto`					VARCHAR(100),
+	`id_tipo_producto`			INTEGER,
+	`precio`					DECIMAL(15,2)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+-- Insertar datos en la tabla aux_producto donde id_producto = 0
+INSERT INTO `aux_producto` SELECT * FROM `producto` WHERE `id_tipo_producto` = 0;
+
+-- Añadir la columna `motivo` a la tabla aux_producto
+# motivo 1 -> Errores debidos a id_tipo_producto (en la tabal aux tipo -> id_tipo_producto)
+ALTER TABLE `aux_producto` ADD `motivo` INTEGER NOT NULL DEFAULT 0;
+
+-- Asignar el motivo respetivo a los datos alojados
+UPDATE `aux_producto` SET `motivo` = 1 WHERE `id_tipo_producto` = 0;
+
+SELECT * FROM `aux_producto`;
+
+DELETE FROM `producto` WHERE `id_tipo_producto` = 0;
+# No me deja borrar esas entradas porque tienen id_producto que ya estan relacionados con la tabla venta, para ello debo borrar 
+#esa relación y luego restaurarla
+
+ALTER TABLE `venta` DROP FOREIGN KEY `venta_fk_producto`;
+
+DELETE FROM `producto` WHERE `id_tipo_producto` = 0;
+# Debo restaurar la relacion venta_fk_producto, para ello ejecuto la línea 247
+*/
+
+/*
+# Esta consulta devuelve las fk de las tabla
+SELECT * FROM information_schema.TABLE_CONSTRAINTS 
+WHERE information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE = 'FOREIGN KEY' 
+AND information_schema.TABLE_CONSTRAINTS.TABLE_SCHEMA = 'henry_m3'
+AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'producto';
 */
 
 -- Tabla sucursal 
 
 ALTER TABLE `sucursal` ADD CONSTRAINT `sucursal_fk_localidad` FOREIGN KEY (`id_localidad`) REFERENCES `localidad` (`id_localidad`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+/*
+# Esta consulta devuelve las fk de las tabla
+SELECT * FROM information_schema.TABLE_CONSTRAINTS 
+WHERE information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE = 'FOREIGN KEY' 
+AND information_schema.TABLE_CONSTRAINTS.TABLE_SCHEMA = 'henry_m3'
+AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'sucursal';
+*/
 
 -- Tabla empleado
 
@@ -307,13 +359,38 @@ ALTER TABLE `empleado` ADD CONSTRAINT `empleado_fk_sector` FOREIGN KEY (`id_sect
 
 ALTER TABLE `empleado` ADD CONSTRAINT `empleado_fk_cargo` FOREIGN KEY (`id_cargo`) REFERENCES `cargo` (`id_cargo`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
+/*
+# Esta consulta devuelve las fk de las tabla
+SELECT * FROM information_schema.TABLE_CONSTRAINTS 
+WHERE information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE = 'FOREIGN KEY' 
+AND information_schema.TABLE_CONSTRAINTS.TABLE_SCHEMA = 'henry_m3'
+AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'empleado';
+*/
+
+
 -- Tabla localidad
 
 ALTER TABLE `localidad` ADD CONSTRAINT `localidad_fk_provincia` FOREIGN KEY (`id_provincia`) REFERENCES `provincia` (`id_provincia`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
+/*
+# Esta consulta devuelve las fk de las tabla
+SELECT * FROM information_schema.TABLE_CONSTRAINTS 
+WHERE information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE = 'FOREIGN KEY' 
+AND information_schema.TABLE_CONSTRAINTS.TABLE_SCHEMA = 'henry_m3'
+AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'localidad';
+*/
+
 -- Tabla proveedor
 
 ALTER TABLE `proveedor` ADD CONSTRAINT `proveedor_fk_localidad` FOREIGN KEY (`id_localidad`) REFERENCES `localidad` (`id_localidad`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+/*
+# Esta consulta devuelve las fk de las tabla
+SELECT * FROM information_schema.TABLE_CONSTRAINTS 
+WHERE information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE = 'FOREIGN KEY' 
+AND information_schema.TABLE_CONSTRAINTS.TABLE_SCHEMA = 'henry_m3'
+AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'proveedor';
+*/
 
 -- Tabla gasto
 
@@ -321,16 +398,54 @@ ALTER TABLE `gasto` ADD CONSTRAINT `gasto_fk_sucursal` FOREIGN KEY (`id_sucursal
 
 ALTER TABLE `gasto` ADD CONSTRAINT `gasto_fk_tipo_gasto` FOREIGN KEY (`id_tipo_gasto`) REFERENCES `tipo_gasto` (`id_tipo_gasto`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
+/*
+# Esta consulta devuelve las fk de las tabla
+SELECT * FROM information_schema.TABLE_CONSTRAINTS 
+WHERE information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE = 'FOREIGN KEY' 
+AND information_schema.TABLE_CONSTRAINTS.TABLE_SCHEMA = 'henry_m3'
+AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'gasto';
+*/
+
 -- Table cliente
 
 ALTER TABLE `cliente` ADD CONSTRAINT `cliente_fk_localidad` FOREIGN KEY (`id_localidad`) REFERENCES `localidad` (`id_localidad`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+/*
+# Esta consulta devuelve las fk de las tabla
+SELECT * FROM information_schema.TABLE_CONSTRAINTS 
+WHERE information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE = 'FOREIGN KEY' 
+AND information_schema.TABLE_CONSTRAINTS.TABLE_SCHEMA = 'henry_m3'
+AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'cliente';
+*/
 
 -- Tabla compra
 
 ALTER TABLE `compra` ADD CONSTRAINT `compra_fk_producto` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
+/*
+Tras resolver el error de la línea 297 ahora surge el error "1452. Cannot add or update a child row: a foreign key constraint fails"
+esto se debe a que elímine unos id_producto de la tabla producto y la tabla venta aún conserva dichos id, por lo tanto debo eliminarlos, 
+para ello he de apoyarme en la tabla aux_producto.
+
+SELECT * FROM `aux_producto` WHERE `id_tipo_producto` = 0;
+
+SELECT `id_producto` FROM `aux_producto` WHERE `id_tipo_producto` = 0;
+
+DELETE FROM `compra` WHERE `id_producto` IN (SELECT `id_producto` FROM `aux_producto` WHERE `id_tipo_producto` = 0);
+# Se borraron 168 filas en las cuales el id_producto estaba asociado a un id_tipo_producto = 0, dichas columnas no se almacenaron el a tabla aux_venta.
+# Hacer la relacion `compra_fk_producto`.
+
+*/
+
 ALTER TABLE `compra` ADD CONSTRAINT `compra_fk_proveedor` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedor` (`id_proveedor`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
+/*
+# Esta consulta devuelve las fk de las tabla
+SELECT * FROM information_schema.TABLE_CONSTRAINTS 
+WHERE information_schema.TABLE_CONSTRAINTS.CONSTRAINT_TYPE = 'FOREIGN KEY' 
+AND information_schema.TABLE_CONSTRAINTS.TABLE_SCHEMA = 'henry_m3'
+AND information_schema.TABLE_CONSTRAINTS.TABLE_NAME = 'compra';
+*/
 
 
 /*
@@ -341,7 +456,53 @@ las consultas del punto 1 y evalue las estadístias.
 
 */
 
+-- Consulta 1
+SELECT AVG(cantidad) AS cantidad_media FROM `venta` GROUP BY `id_producto`;		     
 
+-- Consulta 2
+SELECT *, AVG(`monto`) AS `gato_promedio` FROM `gasto` GROUP BY `id_tipo_gasto`;
+
+-- Consulta 3
+SELECT *, AVG(`precio`) AS `promedio_precio` FROM `compra` GROUP BY `id_producto`; 
+
+-- Consulta 4
+SELECT *, AVG(`salario`) AS `promedio_salario` FROM `empleado` GROUP BY `id_empleado`;
+
+-- Consulta 5
+SELECT  v1.`id_venta`,
+        v1.`fecha`,
+        v1.`fecha_entrega`,
+        v1.`id_canal`,
+        v1.`id_sucursal`,
+        v1.`id_empleado`,
+        v1.`id_producto`, 
+        v1.`cantidad`, 
+        vv.`precio`, 
+        vv.`venta`, 
+        ls.`promedio`, 
+        ls.`maximo` 
+    FROM `venta` v1
+    JOIN (SELECT    v2.`id_venta`, 
+                    p.`precio`, 
+                    ((v2.`cantidad`)*(p.`precio`)) AS `venta`
+        FROM `venta` v2 JOIN `producto` p
+        ON v2.`id_producto` = p.`id_producto`
+        HAVING `venta` IS NOT NULL
+        ORDER BY v2.`id_producto`) AS vv
+    ON v1.`id_venta` = vv.`id_venta`
+    JOIN (SELECT    med_ls.`id_producto`, 
+                    AVG(med_ls.`venta`) AS `promedio`, 
+                    (AVG(med_ls.`venta`) + (3 * STDDEV(med_ls.`venta`))) AS `maximo`
+        FROM (SELECT    v2.`id_producto`, 
+                        v2.`id_venta`, p.`precio`, 
+                        ((v2.`cantidad`)*(p.`precio`)) AS `venta`
+            FROM `venta` v2 JOIN `producto` p
+            ON v2.`id_producto` = p.`id_producto`
+            HAVING `venta` IS NOT NULL
+            ORDER BY v2.`id_producto`) AS med_ls
+        GROUP BY med_ls.`id_producto`) AS ls
+    ON v1.`id_producto` = ls.`id_producto`
+    WHERE vv.`venta` >  ls.`maximo`;
 
 
 
@@ -361,12 +522,101 @@ los campos a considerar deben ser los siguientes:
 
 */
 
-
-
+DROP TABLE IF EXISTS `fact_venta`;
+CREATE TABLE IF NOT EXISTS `fact_venta` (
+  `id_venta`			INTEGER,
+  `fecha` 				DATE NOT NULL,
+  `fecha_entrega` 		DATE NOT NULL,
+  `id_canal`			INTEGER, 
+  `id_cliente`			INTEGER, 
+  `id_sucursal`			INTEGER,
+  `id_empleado`			INTEGER,
+  `id_producto`			INTEGER,
+  `cantidad`			INTEGER
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 /*
 
 6.- A partir de la tabla creada en el punto anterior, deberá 
-poblarla con los datos de la tabla ventas.
+poblarla con los datos de la tabla ventas, para el año 2020.
 
 */
+
+INSERT INTO `fact_venta` SELECT  `id_venta`, 
+                                `fecha`, 
+                                `fecha_entrega`, 
+                                `id_canal`, 
+                                `id_cliente`, 
+                                `id_sucursal`, 
+                                `id_empleado`, 
+                                `id_producto`, 
+                                `cantidad`  
+                                FROM `venta` WHERE YEAR(fecha) = 2020;
+
+/*
+
+Preparar un modelo de datos tipo estrella constituido por las tablas fac_venta, dim_producto, dim_cliente, luego poblarlas con los datos
+correspondientes para el año 2020.
+
+*/
+DROP TABLE IF EXISTS `dim_cliente`;
+CREATE TABLE IF NOT EXISTS `dim_cliente` (
+	`id_cliente`		INTEGER,
+	`nombre_apellido` 	VARCHAR(80),
+	`domicilio`			VARCHAR(150),
+	`telefono`			VARCHAR(30),
+	`rango_edad`		VARCHAR(20),
+	`id_localidad`		INTEGER,
+	`latitud`			DECIMAL(13,10),
+	`longitud`			DECIMAL(13,10)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+INSERT INTO `dim_cliente` SELECT    `id_cliente`, 
+                                    `nombre_apellido`, 
+                                    `domicilio`,
+                                    `telefono`,
+                                    `rango_edad`, 
+                                    `id_localidad`, 
+                                    `latitud`, 
+                                    `longitud`
+                                    FROM `cliente` WHERE `id_cliente` IN (SELECT DISTINCT(`id_cliente`) FROM `fact_venta`);
+
+DROP TABLE IF EXISTS `dim_producto`;
+
+CREATE TABLE IF NOT EXISTS `dim_producto` (
+	`id_producto`				INTEGER,
+	`descripcion_producto`		VARCHAR(100),
+	`id_tipo_producto`			INTEGER,
+    `precio`                    DECIMAL(15,2)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+INSERT INTO `dim_producto` SELECT   `id_producto`, 
+                                    `descripcion_producto`, 
+                                    `id_tipo_producto`,
+                                    `precio`
+                                    FROM `producto`
+                                    WHERE `id_producto` IN (SELECT DISTINCT(`id_producto`) FROM `fact_venta`);
+
+-- Definir los indices y las llaves primarias de la tabla fact_venta
+
+
+ALTER TABLE `fact_venta` MODIFY `id_venta` INTEGER NOT NULL;
+
+ALTER TABLE `fact_venta` ADD CONSTRAINT `pk_venta` PRIMARY KEY (`id_venta`);
+
+CREATE INDEX `idx_producto` ON `fact_venta` (`id_producto`);
+
+CREATE INDEX `idx_empleado` ON `fact_venta` (`id_empleado`);
+
+CREATE INDEX `idx_fecha` ON `fact_venta` (`fecha`);
+
+CREATE INDEX `idx_fecha_entrega` ON `fact_venta` (`fecha_entrega`);
+
+CREATE INDEX `idx_cliente` ON `fact_venta` (`id_cliente`);
+
+CREATE INDEX `idx_sucursal` ON `fact_venta` (`id_sucursal`);
+
+CREATE INDEX `idx_canal` ON `fact_venta` (`id_canal`);
+
+SHOW FULL COLUMNS FROM `fact_venta`;
+
